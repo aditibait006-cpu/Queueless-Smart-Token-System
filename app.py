@@ -561,7 +561,8 @@ def reset_queue():
     finally:
         conn.close()
 
+initialize_database()
+
 if __name__ == "__main__":
-    initialize_database()
     check_database()
     app.run(debug=True)
