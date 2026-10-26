@@ -1,0 +1,892 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>QueueLess | Smart Online Token Management System</title>
+
+<style>
+:root {
+  --primary: #14b8a6;
+  --primary2: #0f766e;
+  --dark: #102a43;
+  --muted: #62748a;
+  --bg: #f4f8fb;
+  --line: #e2eaf0;
+  --success: #15803d;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: Arial, sans-serif;
+  background: var(--bg);
+  color: var(--dark);
+  line-height: 1.6;
+}
+button, input, select { font: inherit; }
+button { cursor: pointer; border: 0; }
+
+.nav {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: white;
+  border-bottom: 1px solid var(--line);
+}
+.navin {
+  max-width: 1180px;
+  margin: auto;
+  padding: 15px 22px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+.logo { font-weight: 900; font-size: 24px; color: var(--primary); }
+.logo span { color: var(--dark); }
+.navlinks { display: flex; gap: 6px; flex-wrap: wrap; }
+.navlinks button {
+  background: transparent;
+  color: #334155;
+  padding: 9px 12px;
+  border-radius: 9px;
+}
+.navlinks button:hover, .navlinks button.active {
+  background: #eff6ff;
+  color: var(--primary);
+}
+.view {
+  display: none;
+  max-width: 1180px;
+  margin: auto;
+  padding: 55px 22px 80px;
+}
+.view.show { display: block; }
+
+.hero {
+  padding: 65px 45px 75px;
+  display: grid;
+  grid-template-columns: 1.15fr .85fr;
+  gap: 55px;
+  align-items: center;
+  background: linear-gradient(135deg,#ecfdf5 0%,#f8fafc 55%,#eff6ff 100%);
+  border: 1px solid #e0f2ec;
+  border-radius: 28px;
+  margin-bottom: 35px;
+}
+.badge {
+  display: inline-flex;
+  background: #dbeafe;
+  color: #1d4ed8;
+  padding: 7px 12px;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 13px;
+  margin-bottom: 16px;
+}
+h1 {
+  font-size: clamp(38px,5vw,62px);
+  line-height: 1.08;
+  letter-spacing: -1.8px;
+  font-weight: 800;
+  color: #102a43;
+  margin-bottom: 20px;
+}
+.hero p { font-size: 18px; color: var(--muted); max-width: 650px; }
+.actions { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 28px; }
+.btn { padding: 13px 19px; border-radius: 10px; font-weight: 800; transition: .2s; }
+.primary { background: var(--primary); color: white; }
+.primary:hover { background: #115e59; transform: translateY(-2px); }
+.secondary { background: white; color: #102a43; border: 1px solid #d5e3e8; }
+.secondary:hover { background: #f0fdfa; border-color: #0f766e; color: #0f766e; }
+
+.hero-card {
+  background: linear-gradient(145deg,#eff6ff,#fff);
+  border: 1px solid #bfdbfe;
+  border-radius: 24px;
+  padding: 25px;
+  box-shadow: 0 20px 50px rgba(37,99,235,.12);
+}
+.queue-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 22px; }
+.queue-number { font-size: 48px; font-weight: 900; color: var(--primary); overflow-wrap: anywhere; }
+.live { color: var(--success); font-weight: 800; font-size: 13px; }
+.progress { height: 10px; background: #dbeafe; border-radius: 99px; overflow: hidden; margin: 12px 0 20px; }
+.progress span { display: block; height: 100%; width: 66%; background: var(--primary); border-radius: 99px; }
+.mini-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.mini { background: white; border: 1px solid var(--line); padding: 14px; border-radius: 14px; }
+.mini small { color: var(--muted); display: block; }
+.mini b { font-size: 20px; }
+
+.section { padding: 55px 0; }
+.section h2 { font-size: 34px; margin-bottom: 10px; }
+.section-sub { color: var(--muted); margin-bottom: 25px; }
+.cards, .steps { display: grid; grid-template-columns: repeat(3,1fr); gap: 18px; }
+.card {
+  background: white;
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  padding: 28px;
+  box-shadow: 0 10px 30px rgba(16,42,67,.06);
+  transition: .25s;
+}
+.card:hover { transform: translateY(-5px); box-shadow: 0 16px 35px rgba(16,42,67,.1); }
+.icon {
+  font-size: 36px;
+  margin-bottom: 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  border-radius: 18px;
+  background: #ecfdf5;
+}
+.card h3 { margin-bottom: 6px; }
+.card p { color: var(--muted); }
+.stepnum {
+  width: 38px; height: 38px; border-radius: 50%;
+  background: #dbeafe; color: var(--primary);
+  display: grid; place-items: center;
+  font-weight: 900; margin-bottom: 12px;
+}
+
+.panel {
+  background: white;
+  border: 1px solid var(--line);
+  border-radius: 24px;
+  padding: 34px;
+  box-shadow: 0 12px 35px rgba(16,42,67,.06);
+}
+.form { display: grid; gap: 14px; }
+.form label { font-weight: 700; font-size: 14px; }
+.form input, .form select {
+  width: 100%;
+  padding: 14px 15px;
+  border: 1px solid #d5e3e8;
+  border-radius: 12px;
+  outline: none;
+  background: #fbfdfe;
+}
+.form input:focus, .form select:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px #dbeafe;
+}
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+.notice { padding: 13px 15px; border-radius: 10px; background: #eff6ff; color: #1e40af; margin-bottom: 15px; }
+.token-result {
+  text-align: center;
+  background: linear-gradient(135deg,#ecfdf5,#fff);
+  border: 1px solid #b7e4dc;
+  border-radius: 24px;
+  padding: 30px;
+  margin-top: 24px;
+}
+.token-big { font-size: clamp(40px,6vw,64px); font-weight: 900; color: #0f766e; overflow-wrap: anywhere; }
+.status-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 14px; margin: 18px 0; }
+.stat { background: #f8fafc; border: 1px solid var(--line); padding: 18px; border-radius: 14px; }
+.stat small { color: var(--muted); }
+.stat b { display: block; font-size: 28px; overflow-wrap: anywhere; }
+
+.tablewrap { overflow: auto; }
+.table { width: 100%; border-collapse: separate; border-spacing: 0; background: white; }
+.table th, .table td { text-align: left; padding: 15px 16px; border-bottom: 1px solid #e8eef2; white-space: nowrap; }
+.table th { font-size: 13px; font-weight: 800; color: #52677b; background: #f1f8f7; }
+.table th:first-child { border-top-left-radius: 10px; }
+.table th:last-child { border-top-right-radius: 10px; }
+.table tbody tr:hover { background: #f0fdfa; }
+
+footer { background: #102a43; color: #cbd5e1; padding: 42px 22px 18px; margin-top: 30px; }
+.footer-container {
+  max-width: 1180px; margin: auto;
+  display: grid; grid-template-columns: 1.5fr 1fr 1fr 1.2fr; gap: 30px;
+}
+.footer-brand { color: #14b8a6; font-size: 25px; font-weight: 900; margin-bottom: 10px; }
+.footer-column h3 { color: white; font-size: 16px; margin-bottom: 13px; }
+.footer-column p, .footer-column a { color: #cbd5e1; font-size: 14px; line-height: 2; }
+.footer-column a { display: block; text-decoration: none; cursor: pointer; }
+.footer-column a:hover { color: #5eead4; }
+.footer-bottom { max-width: 1180px; margin: 30px auto 0; padding-top: 17px; border-top: 1px solid #334155; text-align: center; font-size: 13px; color: #94a3b8; }
+
+.toast {
+  position: fixed; right: 20px; bottom: 20px;
+  background: #0f172a; color: white;
+  padding: 13px 17px; border-radius: 10px;
+  opacity: 0; transform: translateY(10px);
+  transition: .25s; z-index: 50; max-width: calc(100% - 40px);
+}
+.toast.show { opacity: 1; transform: none; }
+
+@media(max-width:800px) {
+  .hero { grid-template-columns: 1fr; padding: 40px 25px; }
+  .cards, .steps, .grid2, .status-grid { grid-template-columns: 1fr; }
+  .navin { align-items: flex-start; flex-direction: column; }
+  .navlinks { width: 100%; overflow-x: auto; }
+  .footer-container { grid-template-columns: 1fr 1fr; }
+}
+@media(max-width:480px) {
+  .footer-container { grid-template-columns: 1fr; }
+  .panel { padding: 22px; }
+}
+</style>
+</head>
+
+<body>
+
+<header class="nav">
+  <div class="navin">
+    <div class="logo">Queue<span>Less</span></div>
+    <nav class="navlinks">
+      <button class="active" data-view="home">Home</button>
+      <button data-view="services">Services</button>
+      <button data-view="book">Get Token</button>
+      <button data-view="status">Check Status</button>
+      <button data-view="login">Login</button>
+      <button data-view="admin">Admin Dashboard</button>
+    </nav>
+  </div>
+</header>
+
+<main>
+
+<section id="home" class="view show">
+  <div class="hero">
+    <div>
+      <span class="badge">SMART QUEUE MANAGEMENT</span>
+      <h1>Skip the queue.<br>Save your time.</h1>
+      <p>QueueLess helps you book an online token, check your queue status, and save time at college and bank service centres.</p>
+      <div class="actions">
+        <button class="btn primary" data-view="book">Get a Token</button>
+        <button class="btn secondary" data-view="status">Check Status</button>
+      </div>
+    </div>
+
+    <div class="hero-card">
+      <div class="queue-top">
+        <div>
+          <small>QueueLess Live Queue</small>
+          <div class="queue-number" id="demoCurrent">Ready</div>
+        </div>
+        <span class="live">● LIVE DEMO</span>
+      </div>
+      <p>Track your token and avoid unnecessary waiting.</p>
+      <div class="progress"><span></span></div>
+      <div class="mini-grid">
+        <div class="mini"><small>Waiting tokens</small><b id="demoWaiting">—</b></div>
+        <div class="mini"><small>Service centres</small><b>02</b></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>How QueueLess Works</h2>
+    <p class="section-sub">Three simple steps to make your visit easier.</p>
+    <div class="steps">
+      <div class="card"><div class="stepnum">1</div><h3>Select a Service</h3><p>Choose Bank or College and select the service you need.</p></div>
+      <div class="card"><div class="stepnum">2</div><h3>Book Your Token</h3><p>Enter your details and receive your token number.</p></div>
+      <div class="card"><div class="stepnum">3</div><h3>Check Your Status</h3><p>Track your token and waiting status online.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="services" class="view">
+  <div class="section">
+    <h2>Our Services</h2>
+    <p class="section-sub">Choose a service centre to get started.</p>
+    <div class="cards">
+      <div class="card">
+        <div class="icon">🏦</div>
+        <h3>Bank Services</h3>
+        <p>Manage your bank visit with an online token.</p>
+        <div class="actions">
+          <button class="btn primary" data-service="Bank">Select Bank</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="icon">🎓</div>
+        <h3>College Services</h3>
+        <p>Get a token for student office and admission services.</p>
+        <div class="actions">
+          <button class="btn primary" data-service="College">Select College</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="icon">⏱️</div>
+        <h3>Save Time</h3>
+        <p>Check token status online before visiting the service desk.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="book" class="view">
+  <div class="section">
+    <h2>Get Your Token</h2>
+    <p class="section-sub">Enter your details and select the service you need.</p>
+    <div class="panel">
+      <form id="tokenForm" class="form">
+        <div>
+          <label for="name">Full Name</label>
+          <input id="name" name="name" type="text" placeholder="Enter your full name" required>
+        </div>
+        <div>
+          <label for="mobile">Mobile Number</label>
+          <input id="mobile" name="mobile" type="tel" inputmode="numeric" pattern="[0-9]{10}" maxlength="10" placeholder="10-digit mobile number" required>
+        </div>
+        <div>
+          <label for="centre">Service Centre</label>
+          <select id="centre" name="centre" required>
+            <option value="">Select centre</option>
+            <option value="Bank">Bank</option>
+            <option value="College">College</option>
+          </select>
+        </div>
+        <div>
+          <label for="service">Specific Service</label>
+          <select id="service" name="service" required>
+            <option value="">Select service</option>
+          </select>
+        </div>
+        <button class="btn primary" type="submit">Book My Token</button>
+      </form>
+      <div id="tokenResult" aria-live="polite"></div>
+    </div>
+  </div>
+</section>
+
+<section id="status" class="view">
+  <div class="section">
+    <h2>Check Token Status</h2>
+    <p class="section-sub">Enter your token and select the service used for booking.</p>
+    <div class="panel">
+      <form id="statusForm" class="form">
+        <div>
+          <label for="statusToken">Token Number</label>
+          <input id="statusToken" type="text" placeholder="Example: COL-001 or BNK-001" required>
+        </div>
+        <div>
+          <label for="statusCentre">Service Centre</label>
+          <select id="statusCentre" required>
+            <option value="">Select centre</option>
+            <option value="Bank">Bank</option>
+            <option value="College">College</option>
+          </select>
+        </div>
+        <div>
+          <label for="statusService">Specific Service</label>
+          <select id="statusService" required>
+            <option value="">Select service</option>
+          </select>
+        </div>
+        <button class="btn primary" type="submit">Check Status</button>
+      </form>
+      <div id="statusResult" aria-live="polite"></div>
+    </div>
+  </div>
+</section>
+
+<section id="login" class="view">
+  <div class="section">
+    <h2>Admin Login</h2>
+    <p class="section-sub">Sign in to manage service queues.</p>
+    <div class="panel" style="max-width:560px">
+      <form id="loginForm" class="form">
+        <div>
+          <label for="adminEmail">Email Address</label>
+          <input id="adminEmail" type="email" placeholder="Enter admin email" required>
+        </div>
+        <div>
+          <label for="adminPassword">Password</label>
+          <input id="adminPassword" type="password" placeholder="Enter password" required>
+        </div>
+        <button class="btn primary" type="submit">Login</button>
+      </form>
+      <p style="color:#64748b;margin-top:15px;font-size:13px">
+        Use your configured demo admin credentials.
+      </p>
+    </div>
+  </div>
+</section>
+
+<section id="admin" class="view">
+  <div class="section">
+    <h2>Admin Dashboard</h2>
+    <p class="section-sub">View and manage tokens for a selected service.</p>
+
+    <div class="panel">
+      <div class="grid2">
+        <div>
+          <label for="adminCentre">Service Centre</label>
+          <select id="adminCentre" style="width:100%;padding:12px;border:1px solid #d5e3e8;border-radius:10px;background:white">
+            <option value="Bank">Bank</option>
+            <option value="College">College</option>
+          </select>
+        </div>
+        <div>
+          <label for="adminService">Specific Service</label>
+          <select id="adminService" style="width:100%;padding:12px;border:1px solid #d5e3e8;border-radius:10px;background:white">
+            <option value="">Select service</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="status-grid">
+        <div class="stat"><small>Current Serving Token</small><b id="adminCurrent">—</b></div>
+        <div class="stat"><small>Waiting</small><b id="adminWaiting">—</b></div>
+        <div class="stat"><small>Total Today</small><b id="adminTotal">—</b></div>
+      </div>
+
+      <div class="actions" style="margin-top:15px;margin-bottom:20px">
+        <button class="btn primary" id="nextBtn" type="button">Call Next Token</button>
+        <button class="btn secondary" id="resetBtn" type="button">Reset Demo Queue</button>
+        <button class="btn secondary" id="logoutBtn" type="button">Logout</button>
+      </div>
+
+      <div class="tablewrap">
+        <table class="table">
+          <thead>
+            <tr><th>Token</th><th>Name</th><th>Centre</th><th>Service</th><th>Status</th></tr>
+          </thead>
+          <tbody id="queueTable">
+            <tr><td colspan="5">Login and select a service to view tokens.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <div class="footer-container">
+    <div>
+      <div class="footer-brand">QueueLess</div>
+      <p>Smart Online Token Management System. Book tokens, track queue status, and save time at college and bank service centres.</p>
+    </div>
+    <div class="footer-column">
+      <h3>Explore</h3>
+      <a href="#" data-view="home">Home</a>
+      <a href="#" data-view="services">Our Services</a>
+      <a href="#" data-view="book">Get a Token</a>
+    </div>
+    <div class="footer-column">
+      <h3>Quick Links</h3>
+      <a href="#" data-view="status">Check Token Status</a>
+      <a href="#" data-view="login">Login</a>
+      <a href="#" data-view="admin">Admin Dashboard</a>
+    </div>
+    <div class="footer-column">
+      <h3>Project Information</h3>
+      <p>BSc Information Technology</p>
+      <p>Semester III</p>
+      <p>Academic Project Prototype</p>
+      <p>Services: College &amp; Bank</p>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    © 2026 QueueLess. All rights reserved.<br>
+    Developed as an academic project prototype.
+  </div>
+</footer>
+
+<div class="toast" id="toast"></div>
+
+<script>
+'use strict';
+
+const SERVICES = {
+  Bank: [
+    'Banking - Cash Counter',
+    'Banking - Account Service',
+    'Banking - Customer Enquiry'
+  ],
+  College: [
+    'College - Student Office',
+    'College - Admission',
+    'College - Certificate Service'
+  ]
+};
+
+let adminToken = sessionStorage.getItem('queueless_admin_token') || '';
+const $ = id => document.getElementById(id);
+const allViews = [...document.querySelectorAll('.view')];
+const navButtons = [...document.querySelectorAll('[data-view]')];
+
+function showView(id) {
+  allViews.forEach(view => view.classList.toggle('show', view.id === id));
+  navButtons.forEach(button => button.classList.toggle('active', button.dataset.view === id));
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+
+  if (id === 'admin' && adminToken) refreshAdminQueue();
+}
+
+navButtons.forEach(button => {
+  button.addEventListener('click', event => {
+    event.preventDefault();
+    showView(button.dataset.view);
+  });
+});
+
+document.querySelectorAll('[data-service]').forEach(button => {
+  button.addEventListener('click', () => {
+    showView('book');
+    $('centre').value = button.dataset.service;
+    fillServices('centre', 'service');
+  });
+});
+
+function toast(message) {
+  const element = $('toast');
+  element.textContent = message;
+  element.classList.add('show');
+  setTimeout(() => element.classList.remove('show'), 2600);
+}
+
+async function api(url, options = {}) {
+  const response = await fetch(url, options);
+  let data = {};
+
+  try {
+    data = await response.json();
+  } catch (_) {
+    throw new Error('Server returned an invalid response. Check that Flask is running.');
+  }
+
+  if (!response.ok) {
+    throw new Error(data.error || data.message || `Request failed (${response.status})`);
+  }
+
+  return data;
+}
+
+function fillServices(centreId, serviceId) {
+  const centre = $(centreId);
+  const service = $(serviceId);
+  if (!centre || !service) return;
+
+  const previousValue = service.value;
+  service.innerHTML = '<option value="">Select service</option>';
+
+  (SERVICES[centre.value] || []).forEach(name => {
+    const option = document.createElement('option');
+    option.value = name;
+    option.textContent = name;
+    service.appendChild(option);
+  });
+
+  if ([...service.options].some(option => option.value === previousValue)) {
+    service.value = previousValue;
+  }
+}
+
+$('centre').addEventListener('change', () => fillServices('centre', 'service'));
+$('statusCentre').addEventListener('change', () => fillServices('statusCentre', 'statusService'));
+
+$('adminCentre').addEventListener('change', () => {
+  fillServices('adminCentre', 'adminService');
+  if (adminToken) refreshAdminQueue();
+});
+
+$('adminService').addEventListener('change', () => {
+  if (adminToken) refreshAdminQueue();
+});
+
+function escapeHtml(value) {
+  return String(value ?? '').replace(/[&<>"']/g, character => ({
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#039;'
+  })[character]);
+}
+
+function selectedService(prefix) {
+  return {
+    service_type: $(prefix + 'Centre').value,
+    service_name: $(prefix + 'Service').value
+  };
+}
+
+async function refreshPublicDashboard() {
+  try {
+    let totalWaiting = 0;
+
+    for (const centre of ['Bank', 'College']) {
+      for (const service of SERVICES[centre]) {
+        const query = `service_type=${encodeURIComponent(centre)}&service_name=${encodeURIComponent(service)}`;
+        const data = await api(`/api/queue?${query}`);
+        totalWaiting += (data.queue || []).filter(token => token.status === 'Waiting').length;
+      }
+    }
+
+    $('demoWaiting').textContent = String(totalWaiting).padStart(2, '0');
+  } catch (error) {
+    console.warn('Public queue refresh:', error.message);
+    $('demoWaiting').textContent = '—';
+  }
+}
+
+/* Book a token */
+$('tokenForm').addEventListener('submit', async event => {
+  event.preventDefault();
+
+  const payload = {
+    name: $('name').value.trim(),
+    mobile: $('mobile').value.trim(),
+    service_type: $('centre').value,
+    service_name: $('service').value
+  };
+
+  if (!payload.service_type || !payload.service_name) {
+    toast('Please select a centre and service.');
+    return;
+  }
+
+  try {
+    const data = await api('/api/tokens', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+
+    const token = data.token;
+
+    $('tokenResult').innerHTML = `
+      <div class="token-result">
+        <h3>Token booked successfully!</h3>
+        <p>Your token number is</p>
+        <div class="token-big">${escapeHtml(token.token_number)}</div>
+        <p><b>Centre:</b> ${escapeHtml(token.service_type)}</p>
+        <p><b>Service:</b> ${escapeHtml(token.service_name)}</p>
+        <p><b>Status:</b> ${escapeHtml(token.status)}</p>
+        <p style="margin-top:12px;color:#64748b">Save your token number to check your status later.</p>
+      </div>`;
+
+    $('tokenForm').reset();
+    fillServices('centre', 'service');
+    toast('Token booked successfully!');
+    refreshPublicDashboard();
+  } catch (error) {
+    toast(error.message);
+  }
+});
+
+/* Check token status */
+$('statusForm').addEventListener('submit', async event => {
+  event.preventDefault();
+
+  const tokenNumber = $('statusToken').value.trim().toUpperCase();
+  const { service_type, service_name } = selectedService('status');
+
+  if (!tokenNumber || !service_type || !service_name) {
+    toast('Enter your token number and select the centre and service.');
+    return;
+  }
+
+  const query = `service_type=${encodeURIComponent(service_type)}&service_name=${encodeURIComponent(service_name)}`;
+
+  try {
+    const data = await api(`/api/tokens/${encodeURIComponent(tokenNumber)}?${query}`);
+    const queueData = await api(`/api/queue?${query}`);
+    const queue = queueData.queue || [];
+
+    const tokenIndex = queue.findIndex(item => item.token_number === data.token.token_number);
+    const waitingAhead = tokenIndex < 0 ? 0 : queue
+      .slice(0, tokenIndex)
+      .filter(item => item.status === 'Waiting').length;
+
+    $('statusResult').innerHTML = `
+      <div class="token-result">
+        <h3>Token Status</h3>
+        <div class="token-big">${escapeHtml(data.token.token_number)}</div>
+        <p><b>Centre:</b> ${escapeHtml(data.token.service_type)}</p>
+        <p><b>Service:</b> ${escapeHtml(data.token.service_name)}</p>
+        <p><b>Status:</b> ${escapeHtml(data.token.status)}</p>
+        ${data.token.status === 'Waiting'
+          ? `<p><b>Waiting tokens ahead:</b> ${waitingAhead}</p>`
+          : ''}
+      </div>`;
+  } catch (error) {
+    $('statusResult').innerHTML = `<p style="color:#b91c1c;margin-top:15px">${escapeHtml(error.message)}</p>`;
+  }
+});
+
+/* Admin login */
+$('loginForm').addEventListener('submit', async event => {
+  event.preventDefault();
+
+  const email = $('adminEmail').value.trim();
+  const password = $('adminPassword').value;
+
+  try {
+    const data = await api('/api/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password })
+    });
+
+    adminToken = data.token;
+    sessionStorage.setItem('queueless_admin_token', adminToken);
+
+    fillServices('adminCentre', 'adminService');
+    showView('admin');
+    await refreshAdminQueue();
+    toast('Login successful!');
+  } catch (error) {
+    toast(error.message);
+  }
+});
+
+function adminHeaders() {
+  return {
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${adminToken}`
+  };
+}
+
+/* Load the admin queue and filter it by centre and service */
+async function refreshAdminQueue() {
+  if (!adminToken) {
+    $('queueTable').innerHTML = '<tr><td colspan="5">Please log in to view the queue.</td></tr>';
+    return;
+  }
+
+  try {
+    const data = await api('/api/admin/queue', {
+      headers: adminHeaders()
+    });
+
+    const centre = $('adminCentre').value;
+    const service = $('adminService').value;
+
+    const rows = (data.queue || []).filter(item =>
+      item.service_type === centre &&
+      (!service || item.service_name === service)
+    );
+
+    const waiting = rows.filter(item => item.status === 'Waiting').length;
+    const serving = rows.find(item => item.status === 'Serving');
+
+    $('adminCurrent').textContent = serving ? serving.token_number : '—';
+    $('adminWaiting').textContent = waiting;
+    $('adminTotal').textContent = rows.length;
+
+    const tableBody = $('queueTable');
+    tableBody.innerHTML = '';
+
+    if (rows.length === 0) {
+      tableBody.innerHTML = '<tr><td colspan="5">No tokens found for this service today.</td></tr>';
+      return;
+    }
+
+    rows.forEach(item => {
+      tableBody.insertAdjacentHTML('beforeend', `
+        <tr>
+          <td><b>${escapeHtml(item.token_number)}</b></td>
+          <td>${escapeHtml(item.name)}</td>
+          <td>${escapeHtml(item.service_type)}</td>
+          <td>${escapeHtml(item.service_name)}</td>
+          <td>${escapeHtml(item.status)}</td>
+        </tr>`);
+    });
+  } catch (error) {
+    if (error.message.toLowerCase().includes('login') ||
+        error.message.toLowerCase().includes('expired') ||
+        error.message.toLowerCase().includes('invalid')) {
+      adminToken = '';
+      sessionStorage.removeItem('queueless_admin_token');
+    }
+
+    $('queueTable').innerHTML = `<tr><td colspan="5">${escapeHtml(error.message)}</td></tr>`;
+    toast(error.message);
+  }
+}
+
+/* Call next token for the selected service */
+$('nextBtn').addEventListener('click', async () => {
+  if (!adminToken) {
+    toast('Please log in first.');
+    showView('login');
+    return;
+  }
+
+  const { service_type, service_name } = selectedService('admin');
+
+  if (!service_type || !service_name) {
+    toast('Select a centre and specific service first.');
+    return;
+  }
+
+  try {
+    await api('/api/admin/next', {
+      method: 'POST',
+      headers: adminHeaders(),
+      body: JSON.stringify({ service_type, service_name })
+    });
+
+    await refreshAdminQueue();
+    await refreshPublicDashboard();
+    toast('Queue updated.');
+  } catch (error) {
+    toast(error.message);
+  }
+});
+
+/* Reset is destructive: confirmation is required */
+$('resetBtn').addEventListener('click', async () => {
+  if (!adminToken) {
+    toast('Please log in first.');
+    showView('login');
+    return;
+  }
+
+  const { service_type, service_name } = selectedService('admin');
+
+  if (!service_type || !service_name) {
+    toast('Select a centre and specific service first.');
+    return;
+  }
+
+  const confirmed = confirm(
+    `Clear TODAY'S tokens for ${service_type} — ${service_name}? This cannot be undone.`
+  );
+
+  if (!confirmed) return;
+
+  try {
+    await api('/api/admin/reset', {
+      method: 'POST',
+      headers: adminHeaders(),
+      body: JSON.stringify({ service_type, service_name })
+    });
+
+    await refreshAdminQueue();
+    await refreshPublicDashboard();
+    toast('Selected queue cleared.');
+  } catch (error) {
+    toast(error.message);
+  }
+});
+
+/* Logout */
+$('logoutBtn').addEventListener('click', () => {
+  adminToken = '';
+  sessionStorage.removeItem('queueless_admin_token');
+  $('queueTable').innerHTML = '<tr><td colspan="5">Please log in to view the queue.</td></tr>';
+  $('adminCurrent').textContent = '—';
+  $('adminWaiting').textContent = '—';
+  $('adminTotal').textContent = '—';
+  showView('login');
+  toast('Logged out.');
+});
+
+/* Initial setup */
+fillServices('centre', 'service');
+fillServices('statusCentre', 'statusService');
+fillServices('adminCentre', 'adminService');
+refreshPublicDashboard();
+</script>
+
+</body>
+</html>
